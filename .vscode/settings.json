@@ -1,0 +1,59 @@
+{
+    "files.associations": {
+    
+        "Dockerfile*": "dockerfile",
+        "iris.script": "objectscript"
+      },
+    "objectscript.conn" :{
+      "ns": "IRISAPP",
+      "username": "SuperUser",
+      "password": "SYS",
+      "docker-compose": {
+        "service": "iris",
+        "internalPort": 52773
+      },
+      "active": true,
+      "links": {
+        "Production": "http://localhost:${port}/csp/irisapp/EnsPortal.ProductionConfig.zen?PRODUCTION=dc.Python.Production"
+      }
+    },
+    "intersystems.servers": {
+			"devcontainer": {
+				"username": "SuperUser",
+				"password": "SYS",
+				"webServer": {
+					"scheme": "http",
+					"host": "127.0.0.1",
+					"port": 52773
+				},
+			},
+		},
+    "sqltools.connections": [
+      {
+        "namespace": "IRISAPP",
+        "connectionMethod": "Server and Port",
+        "showSystem": false,
+        "previewLimit": 50,
+        "server": "localhost",
+        "port": 52795,
+        "askForPassword": false,
+        "driver": "InterSystems IRIS",
+        "name": "IRISAPP",
+        "username": "_SYSTEM",
+        "password": "SYS"
+      }
+    ],
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "python.formatting.provider": "none",
+    "python.testing.pytestArgs": [
+      "src"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.analysis.extraPaths": [
+      "./src/python/reddit"
+    ],
+
+}

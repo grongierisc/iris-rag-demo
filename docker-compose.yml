@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+  iris:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - ISC_CPF_MERGE_FILE=/irisdev/app/merge.cpf
+    command: 
+      --check-caps false
+    ports: 
+      - 1972
+      - 53795:52773
+      - 53773
+    volumes:
+      - ./:/irisdev/app
+      - ./init.db/:/docker-entrypoint-initdb.d/

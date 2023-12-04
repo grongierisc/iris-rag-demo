@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="iris-python-interop-template.ZPM">
+    <Module>
+      <Name>iris-python-interop-template</Name>
+      <Description>An demo package</Description>
+      <Version>0.0.1</Version>
+      <Packaging>module</Packaging>
+      <Dependencies>
+        <ModuleReference>
+          <Name>pex-embbeded-python</Name>
+          <Version>2.3.8</Version>
+        </ModuleReference>
+      </Dependencies>
+      <SourcesRoot>src</SourcesRoot>
+      <SystemRequirements Version=">=2021.2" Interoperability="enabled" />
+    </Module>
+  </Document>
+</Export>
