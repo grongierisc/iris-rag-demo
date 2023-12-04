@@ -1,31 +1,31 @@
 version: '3.6'
 services:
-  iris:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    environment:
-      - ISC_CPF_MERGE_FILE=/irisdev/app/merge.cpf
-    command: 
-      --check-caps false
-    ports: 
-      - 1972
-      - 53795:52773
-      - 53773
-    volumes:
-      - ./:/irisdev/app
-      - ./init.db/:/docker-entrypoint-initdb.d/
+  # iris:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   environment:
+  #     - ISC_CPF_MERGE_FILE=/irisdev/app/merge.cpf
+  #   command: 
+  #     --check-caps false
+  #   ports: 
+  #     - 1972
+  #     - 53795:52773
+  #     - 53773
+  #   volumes:
+  #     - ./:/irisdev/app
+  #     - ./init.db/:/docker-entrypoint-initdb.d/
   ollama:
     image: ollama/ollama:latest
+    environment:
+      - MODEL=orca-mini
     volumes:
       - ./ollama/:/root/.ollama
     ports:
       - 11434:11434
-    entrypoint: ["sh", "/root/.ollama/entrypoint.sh", "orca-mini"]
+    entrypoint: ["sh", "/root/.ollama/entrypoint.sh"]
   ollama-gui:
-    build: 
-      context: ./ollama-gui
-      dockerfile: Dockerfile
+    image: ghcr.io/ollama-webui/ollama-webui:main
     ports:
       - 8080:8080

@@ -1,23 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
-pgrep ollama | xargs kill
+./bin/ollama serve &
+./bin/ollama pull $MODEL
 
-ollama serve 2>&1 | tee ollama.server.log &
-# Store the process ID (PID) of the background command
+ollama run $MODEL
 
-check_server_is_running() {
-    # Replace "Listening" with the actual expected output
-    if tail -n 1 ollama.server.log | grep -q "Listening"; then
-        return 0 # Success
-    else
-        return 1 # Failure
-    fi
-}
-
-# Wait for the process to print "Listening"
-while ! check_server_is_running; do
-    sleep 1
-done
-
-ollama pull $1
-ollama run $1
+tail -f /dev/null
