@@ -15,13 +15,13 @@ class ChatService(BusinessService):
         # build message
         msg = FileIngestionRequest(file_path=file_path)
         # send message
-        self.send_request_sync(target=self.target, request=msg)
+        self.send_request_sync(self.target, msg)
 
     def ask(self, query: str, rag: bool = False):
         # build message
         msg = ChatRequest(query=query, rag=rag)
         # send message
-        response = self.send_request_sync(target=self.target, request=msg)
+        response = self.send_request_sync(self.target, msg)
         # return response
         if type(response) is type(ChatResponse):
             return response.response
@@ -32,4 +32,4 @@ class ChatService(BusinessService):
         # build message
         msg = ChatClearRequest()
         # send message
-        self.send_request_sync(target=self.target, request=msg)
+        self.send_request_sync(self.target, msg)
