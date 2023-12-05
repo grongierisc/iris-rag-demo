@@ -52,6 +52,10 @@ class TestChatOperation(unittest.TestCase):
         self.assertIsNone(self.operation.retriever)
         self.assertIsNone(self.operation.chain)
 
+    def test_on_tear_down_no_mock(self):
+        self.operation.on_init()
+        self.operation.on_tear_down()
+
     def test_ask_whithout_rag_no_mock(self):
         request = ChatRequest(query="what is the grongier.pex module ?", rag=False)
         self.operation.on_init()
@@ -71,6 +75,13 @@ class TestChatOperation(unittest.TestCase):
         response = self.operation.ask(request)
 
         self.assertIsNotNone(response)
+
+    def test_ingest_text(self):
+        text_file = "requirements.txt"
+        ingestion_request = FileIngestionRequest(file_path=text_file)
+        self.operation.on_init()
+
+        self.operation.ingest(ingestion_request)
 
 if __name__ == "__main__":
     unittest.main()
