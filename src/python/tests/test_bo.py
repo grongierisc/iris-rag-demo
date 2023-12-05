@@ -1,66 +1,76 @@
-from bo import FileOperation
-import os
-from unittest.mock import patch, mock_open, MagicMock
+import unittest
+from unittest.mock import MagicMock
 
-class TestFileOperation():
+from rag.bo import ChatOperation
+from rag.msg import FileIngestionRequest, ChatRequest, ChatClearRequest
+
+class TestChatOperation(unittest.TestCase):
+    def setUp(self):
+        self.operation = ChatOperation()
 
     def test_on_init(self):
-        """
-        This method is called when the operation is initialized.
-        """
-        # Create a FileOperation instance
-        operation = FileOperation()
+        self.operation.on_init()
+        self.assertIsNotNone(self.operation.model)
+        self.assertIsNotNone(self.operation.text_splitter)
 
-        # Set the path attribute
-        operation.path = "/path/to/directory"
+    def test_ask_without_rag(self):
+        request = ChatRequest(query="What is the answer?")
+        self.operation.model = MagicMock()
+        self.operation.model.return_value = "response"
 
-        # Use a context manager to temporarily change the current working directory
-        with patch.object(os, "chdir") as mock_chdir:
-            # Call the on_init method
-            operation.on_init()
+        response = self.operation.ask(request)
 
-            # Assert that the chdir function was called with the correct argument
-            mock_chdir.assert_called_once_with("/path/to/directory")
+        self.operation.model.assert_called_once_with({"question": "What is the answer?"})
+        self.assertEqual(response, "response")
 
-    @patch('bo.FileOperation.put_line')
-    def test_on_post_message(self, mock_put_line):
-        # Create a mock PostMessage object
-        post_message = MagicMock()
-        post_message.post.title = "Test Title"
-        post_message.post.author = "Test Author"
-        post_message.post.url = "http://test.com"
-        post_message.post.selftext = "Test Text"
-        post_message.found = "Test Company"
+    def test_ask_with_rag(self):
+        request = ChatRequest(query="What is the answer?", rag=True)
+        self.operation.chain = MagicMock()
+        self.operation.chain.invoke.return_value = "response"
 
-        # Create a FileOperation object and call the on_post_message method with the mock PostMessage object
-        file_operation = FileOperation()
-        file_operation.on_post_message(post_message)
+        response = self.operation.ask(request)
 
-        # assert that the put_line has been called 4 times
-        assert mock_put_line.call_count == 4
+        self.operation.chain.invoke.assert_called_once_with("What is the answer?")
+        self.assertEqual(response, "response")
 
-        # assert that the put_line has been called with the correct arguments
-        mock_put_line.call_args_list[0][0][0] == "Test Company.txt"
-        mock_put_line.call_args_list[0][0][1] == '1970-01-01 01:00:01 : Test Title : Test Author : http://test.com'
-        mock_put_line.call_args_list[1][0][0] == "Test Company.txt"
-        mock_put_line.call_args_list[1][0][1] == ""
-        mock_put_line.call_args_list[2][0][0] == "Test Company.txt"
-        mock_put_line.call_args_list[2][0][1] == "Test Text"
-        mock_put_line.call_args_list[3][0][0] == "Test Company.txt"
-        mock_put_line.call_args_list[3][0][1] == ' * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *'
+    def test_clear(self):
+        request = ChatClearRequest()
+        self.operation.on_tear_down = MagicMock()
 
-    def test_put_line(self):
-            # create a mock file object
-            m = mock_open()
-            
-            # patch the built-in open function with the mock object
-            with patch('builtins.open', m):
-                # call the function with some test data
-                filename = 'test.txt'
-                string = 'hello world'
-                FileOperation().put_line(filename, string)
-                
-                # check if the mock file object was called with the expected arguments
-                m.assert_called_once_with(filename, 'a', encoding='utf-8')
-                handle = m()
-                handle.write.assert_called_once_with(string)
+        self.operation.clear(request)
+
+        self.operation.on_tear_down.assert_called_once()
+
+    def test_on_tear_down(self):
+        self.operation.vector_store = MagicMock()
+        self.operation.retriever = MagicMock()
+        self.operation.chain = MagicMock()
+
+        self.operation.on_tear_down()
+
+        self.assertIsNone(self.operation.vector_store)
+        self.assertIsNone(self.operation.retriever)
+        self.assertIsNone(self.operation.chain)
+
+    def test_ask_whithout_rag_no_mock(self):
+        request = ChatRequest(query="what is the grongier.pex module ?", rag=False)
+        self.operation.on_init()
+
+        response = self.operation.ask(request)
+
+        self.assertIsNotNone(response)
+
+    def test_ask_with_rag_no_mock(self):
+        request = ChatRequest(query="what is the grongier.pex module ?", rag=True)
+        self.operation.on_init()
+
+        markdown_file = "misc/context.md"
+        ingestion_request = FileIngestionRequest(file_path=markdown_file)
+        self.operation.ingest(ingestion_request)
+
+        response = self.operation.ask(request)
+
+        self.assertIsNotNone(response)
+
+if __name__ == "__main__":
+    unittest.main()

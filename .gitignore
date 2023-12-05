@@ -5,3 +5,4 @@ __pycache__
 iris-main.log
 .venv
 waitISC.log
+local_cache/**

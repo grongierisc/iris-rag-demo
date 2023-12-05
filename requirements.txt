@@ -1,2 +1,8 @@
 iris-pex-embedded-python>=2.0.0
 langchain
+streamlit
+streamlit-chat
+pypdf
+pytest
+chromadb
+fastembed
