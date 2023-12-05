@@ -1,3 +1,4 @@
+import uuid
 from grongier.pex import BusinessOperation
 from langchain.vectorstores import Chroma
 from langchain.llms import Ollama
@@ -7,20 +8,19 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHead
 from langchain.vectorstores.utils import filter_complex_metadata
 from langchain.chains import RetrievalQA
 
-from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest
+from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse
 
 class ChatOperation(BusinessOperation):
 
     def __init__(self):
         self.model = None
         self.text_splitter = None
-        self.prompt = None
         self.vector_store = None
         self.retriever = None
         self.chain = None
 
     def on_init(self):
-        self.model = Ollama(base_url="http://localhost:11434",model="orca-mini")
+        self.model = Ollama(base_url="http://ollama:11434",model="orca-mini")
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
         self.vector_store = Chroma(persist_directory="vector",embedding_function=FastEmbedEmbeddings())
 
@@ -47,7 +47,9 @@ class ChatOperation(BusinessOperation):
             return "unknown"
 
     def _store_chunks(self, chunks):
-        self.vector_store.from_documents(documents=chunks, embedding=FastEmbedEmbeddings())
+        ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
+        unique_ids = list(set(ids))
+        self.vector_store.add_documents(chunks, ids = unique_ids)
         self.retriever = self.vector_store.as_retriever(
             search_type="similarity_score_threshold",
             search_kwargs={
@@ -97,16 +99,20 @@ class ChatOperation(BusinessOperation):
     def ask(self, request: ChatRequest):
         query = request.query
         rag = request.rag
+        rsp = ChatResponse(response="")
         if not rag or self.chain is None:
             # send to ChatOllama
-            return self.model(query)
+            rsp.response = self.model(query)
+        else:
+            # send to ChatRag
+            rsp.response = self.chain({"query": query})
 
-        return self.chain({"query": query})
+        return rsp
 
     def clear(self, request: ChatClearRequest):
         self.on_tear_down()
 
     def on_tear_down(self):
-        self.vector_store = None
-        self.retriever = None
-        self.chain = None
+        docs = self.vector_store.get()
+        for id in docs['ids']:
+            self.vector_store.delete(id)
