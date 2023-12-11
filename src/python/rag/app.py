@@ -6,7 +6,6 @@ from streamlit_chat import message
 from grongier.pex import Director
 
 _service = Director.create_python_business_service("ChatService")
-_service.clear()
 
 st.set_page_config(page_title="ChatIRIS")
 
@@ -21,15 +20,13 @@ def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
         with st.spinner(f"Thinking"):
-            agent_text = st.session_state["assistant"].ask(user_text)
+            agent_text = st.session_state["assistant"].ask(user_text, st.session_state["rag_enabled"])
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
 
 
 def read_and_save_file():
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
 
     for file in st.session_state["file_uploader"]:
         with tempfile.NamedTemporaryFile(delete=False,suffix=f".{file.name.split('.')[-1]}") as tf:
@@ -52,6 +49,7 @@ def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
         st.session_state["assistant"] = _service
+        st.session_state["assistant"].clear()
 
     st.header("ChatIRIS")
 

@@ -104,6 +104,11 @@ class ChatOperation(BusinessOperation):
             # send to ChatOllama
             rsp.response = self.model(query)
         else:
+            # for logging purposes
+            # check if the query is in the vector store
+            docs = self.vector_store.similarity_search(query)
+            for doc in docs:
+                self.log_info(f"doc: {doc}")
             # send to ChatRag
             rsp.response = self.chain({"query": query})
 

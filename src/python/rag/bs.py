@@ -23,8 +23,13 @@ class ChatService(BusinessService):
         # send message
         response = self.send_request_sync(self.target, msg)
         # return response
-        if type(response) is type(ChatResponse):
-            return response.response
+        if response:
+            self.log_info(f"response: {response.response}")
+            # check if dict response.response has key "result"
+            if "result" in response.response:
+                return response.response["result"]
+            else:
+                return response.response
         else:
             return None
 
