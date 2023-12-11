@@ -16,6 +16,7 @@ services:
       - 53773
     volumes:
       - ./:/irisdev/app
+    entrypoint: ["sh", "/irisdev/app/entrypoint.sh"]
   ollama:
     image: ollama/ollama:latest
     environment:
