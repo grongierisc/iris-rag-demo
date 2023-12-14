@@ -11,7 +11,7 @@ services:
       --check-caps false
     ports: 
       - 1972
-      - 8051
+      - 8051:8051
       - 53795:52773
       - 53773
     volumes:
