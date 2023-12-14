@@ -1,5 +1,6 @@
 import os
 import tempfile
+import time
 import streamlit as st
 from streamlit_chat import message
 
@@ -21,11 +22,10 @@ def process_input():
         user_text = st.session_state["user_input"].strip()
         with st.spinner(f"Thinking about {user_text}"):
             rag_enabled = False
-            if len(st.session_state["file_uploader"]) <= 0:
-                rag_enabled = False
-            else:
+            if len(st.session_state["file_uploader"]) > 0:
                 rag_enabled = True
-            agent_text = st.session_state["assistant"].ask(user_text, rag_enabled)
+            time.sleep(1) # help the spinner to show up
+            agent_text = _service.ask(user_text, rag_enabled)
 
         st.session_state["messages"].append((user_text, True))
         st.session_state["messages"].append((agent_text, False))
@@ -39,7 +39,7 @@ def read_and_save_file():
             file_path = tf.name
 
         with st.spinner(f"Ingesting {file.name}"):
-            st.session_state["assistant"].ingest(file_path)
+            _service.ingest(file_path)
         os.remove(file_path)
 
     if len(st.session_state["file_uploader"]) > 0:
@@ -48,7 +48,7 @@ def read_and_save_file():
         )
 
     if len(st.session_state["file_uploader"]) == 0:
-        st.session_state["assistant"].clear()
+        _service.clear()
         st.session_state["messages"].append(
             ("Clearing all data", False)
         )
@@ -56,8 +56,7 @@ def read_and_save_file():
 def page():
     if len(st.session_state) == 0:
         st.session_state["messages"] = []
-        st.session_state["assistant"] = _service
-        st.session_state["assistant"].clear()
+        _service.clear()
 
     st.header("ChatIRIS")
 
