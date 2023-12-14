@@ -19,7 +19,7 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"].strip()
-        with st.spinner(f"Thinking"):
+        with st.spinner(f"Thinking about {user_text}"):
             rag_enabled = False
             if len(st.session_state["file_uploader"]) <= 0:
                 rag_enabled = False
