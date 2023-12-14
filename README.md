@@ -1,6 +1,6 @@
 # IRIS RAG Demo
 
-![IRIS RAG Demo](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/title.png?raw=true)
+![IRIS RAG Demo](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/title.jpg?raw=true)
 
 This is a simple demo of the IRIS with RAG (Retrieval Augmented Generation) example.
 The backend is written in Python using IRIS and IoP, the LLM model is `orca-mini` and served by the `ollama` server.
@@ -46,7 +46,7 @@ To search the *knowledge base*, we will use vector search.
 
 Vector search is a technique that allows to find the most relevant documents given a query. It works by converting the documents and the query into vectors, and then computing the cosine similarity between the query vector and the document vectors. The higher the cosine similarity, the more relevant the document is.
 
-![Vector Search](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/vector_search.png?raw=true)
+![Vector Search](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/vector_search.jpg?raw=true)
 
 Now that we know how RAG works, let's see how to use it.
 
