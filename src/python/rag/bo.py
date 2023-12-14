@@ -6,21 +6,16 @@ from langchain.embeddings import FastEmbedEmbeddings
 from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
 from langchain.vectorstores.utils import filter_complex_metadata
-from langchain.chains import RetrievalQA
 
-from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse
+from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse, VectorSearchRequest, VectorSearchResponse
 
-class ChatOperation(BusinessOperation):
+class VectorOperation(BusinessOperation):
 
     def __init__(self):
-        self.model = None
         self.text_splitter = None
         self.vector_store = None
-        self.retriever = None
-        self.chain = None
 
     def on_init(self):
-        self.model = Ollama(base_url="http://ollama:11434",model="orca-mini")
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
         self.vector_store = Chroma(persist_directory="vector",embedding_function=FastEmbedEmbeddings())
 
@@ -35,6 +30,20 @@ class ChatOperation(BusinessOperation):
             self._ingest_text(file_path)
         else:
             raise Exception(f"Unknown file type: {file_type}")
+
+    def clear(self, request: ChatClearRequest):
+        self.on_tear_down()
+
+    def similar(self, request: VectorSearchRequest):
+        # do a similarity search
+        docs = self.vector_store.similarity_search(request.query)
+        # return the response
+        return VectorSearchResponse(docs=docs)
+
+    def on_tear_down(self):
+        docs = self.vector_store.get()
+        for id in docs['ids']:
+            self.vector_store.delete(id)
         
     def _get_file_type(self, file_path: str):
         if file_path.lower().endswith(".pdf"):
@@ -50,18 +59,6 @@ class ChatOperation(BusinessOperation):
         ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
         unique_ids = list(set(ids))
         self.vector_store.add_documents(chunks, ids = unique_ids)
-        self.retriever = self.vector_store.as_retriever(
-            search_type="similarity_score_threshold",
-            search_kwargs={
-                "k": 3,
-                "score_threshold": 0.5,
-            },
-        )
-
-        self.chain = RetrievalQA.from_chain_type(
-            self.model,
-            retriever=self.retriever
-        )
         
     def _ingest_text(self, file_path: str):
         docs = TextLoader(file_path).load()
@@ -76,7 +73,7 @@ class ChatOperation(BusinessOperation):
         chunks = filter_complex_metadata(chunks)
 
         self._store_chunks(chunks)
-        
+
     def _ingest_markdown(self, file_path: str):
         # Document loader
         docs = TextLoader(file_path).load()
@@ -96,28 +93,14 @@ class ChatOperation(BusinessOperation):
 
         self._store_chunks(chunks)
 
+class ChatOperation(BusinessOperation):
+
+    def __init__(self):
+        self.model = None
+
+    def on_init(self):
+        self.model = Ollama(base_url="http://ollama:11434",model="orca-mini")
+
     def ask(self, request: ChatRequest):
-        query = request.query
-        rag = request.rag
-        rsp = ChatResponse(response="")
-        if not rag or self.chain is None:
-            # send to ChatOllama
-            rsp.response = self.model(query)
-        else:
-            # for logging purposes
-            # check if the query is in the vector store
-            docs = self.vector_store.similarity_search(query)
-            for doc in docs:
-                self.log_info(f"doc: {doc}")
-            # send to ChatRag
-            rsp.response = self.chain({"query": query})
+        return ChatResponse(response=self.model(request.query))
 
-        return rsp
-
-    def clear(self, request: ChatClearRequest):
-        self.on_tear_down()
-
-    def on_tear_down(self):
-        docs = self.vector_store.get()
-        for id in docs['ids']:
-            self.vector_store.delete(id)

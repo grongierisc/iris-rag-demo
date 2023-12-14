@@ -1,37 +1,31 @@
 from grongier.pex import BusinessService
 
-from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse
+from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest
 
 class ChatService(BusinessService):
 
     def on_init(self):
-        if not hasattr(self, "target"):
-            self.target = "ChatOperation"
+        if not hasattr(self, "target_chat"):
+            self.target_chat = "ChatProcess"
+        if not hasattr(self, "target_vector"):
+            self.target_vector = "VectorOperation"
 
     def ingest(self, file_path: str):
         # build message
         msg = FileIngestionRequest(file_path=file_path)
         # send message
-        self.send_request_sync(self.target, msg)
+        self.send_request_sync(self.target_vector, msg)
 
     def ask(self, query: str, rag: bool = False):
         # build message
-        msg = ChatRequest(query=query, rag=rag)
+        msg = ChatRequest(query=query)
         # send message
-        response = self.send_request_sync(self.target, msg)
+        response = self.send_request_sync(self.target_chat, msg)
         # return response
-        if response:
-            self.log_info(f"response: {response.response}")
-            # check if dict response.response has key "result"
-            if "result" in response.response:
-                return response.response["result"]
-            else:
-                return response.response
-        else:
-            return None
+        return response.response
 
     def clear(self):
         # build message
         msg = ChatClearRequest()
         # send message
-        self.send_request_sync(self.target, msg)
+        self.send_request_sync(self.target_vector, msg)
