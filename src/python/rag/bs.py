@@ -4,11 +4,8 @@ from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatRes
 
 class ChatService(BusinessService):
 
-    def __init__(self):
-        self.target = ""
-
     def on_init(self):
-        if self.target:
+        if not hasattr(self, "target"):
             self.target = "ChatOperation"
 
     def ingest(self, file_path: str):
