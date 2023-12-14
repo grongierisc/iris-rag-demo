@@ -1,6 +1,6 @@
 # IRIS RAG Demo
 
-![IRIS RAG Demo](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/title.png)
+![IRIS RAG Demo](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/title.png?raw=true)
 
 This is a simple demo of the IRIS with RAG (Retrieval Augmented Generation) example.
 The backend is written in Python using IRIS and IoP, the LLM model is `orca-mini` and served by the `ollama` server.
@@ -38,7 +38,7 @@ The grongier.pex module is a module that allows you to do X, Y and Z.
 
 Ok, now it knows what is the grongier.pex module. But what if we don't know what is the grongier.pex module? How can we give it a prompt that contains the answer? Well, that's where the *knowledge base* comes in.
 
-![RAG](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/rag_schema.png)
+![RAG](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/rag_schema.png?raw=true)
 
 The whole idea of RAG is to use the *knowledge base* to find the **context**, and then use the LLM to generate the answer.
 To find the **context**, RAG will use a **retriever**. The **retriever** will search the *knowledge base* for the most relevant documents, and then RAG will use the LLM to generate the answer.
@@ -46,7 +46,7 @@ To search the *knowledge base*, we will use vector search.
 
 Vector search is a technique that allows to find the most relevant documents given a query. It works by converting the documents and the query into vectors, and then computing the cosine similarity between the query vector and the document vectors. The higher the cosine similarity, the more relevant the document is.
 
-![Vector Search](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/vector_search.png)
+![Vector Search](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/vector_search.png?raw=true)
 
 Now that we know how RAG works, let's see how to use it.
 
@@ -66,13 +66,13 @@ docker-compose up
 
 Once the demo is started, you can access the frontend at http://localhost:8501.
 
-![Frontend](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/frontend.png)
+![Frontend](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/iris_chat.png?raw=true)
 
 You can ask questions about the IRIS, for example:
 
 - What is the grongier.pex module?
 
-![Question](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/whitout_rag.png)
+![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/without_rag.png?raw=true)
 
 As you can see, the answer is not very good, because the LLM does not know what is the grongier.pex module.
 
@@ -84,7 +84,7 @@ And ask the same question:
 
 - What is the grongier.pex module?
 
-![Question](https://raw.githubusercontent.com/grongierisc/iris-rag-demo/main/misc/with_rag.png)
+![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/with_rag.png?raw=true)
 
 As you can see, the answer is much better, because the LLM now knows what is the grongier.pex module.
 
