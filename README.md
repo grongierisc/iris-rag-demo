@@ -103,6 +103,90 @@ The frontend is written with Streamlit, it's a simple chatbot that allows you to
 
 Nothing fancy here, just a simple chatbot.
 
+<spoiler>
+
+```python
+import os
+import tempfile
+import time
+import streamlit as st
+from streamlit_chat import message
+
+from grongier.pex import Director
+
+_service = Director.create_python_business_service("ChatService")
+
+st.set_page_config(page_title="ChatIRIS")
+
+
+def display_messages():
+    st.subheader("Chat")
+    for i, (msg, is_user) in enumerate(st.session_state["messages"]):
+        message(msg, is_user=is_user, key=str(i))
+
+
+def process_input():
+    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
+        user_text = st.session_state["user_input"].strip()
+        with st.spinner(f"Thinking about {user_text}"):
+            rag_enabled = False
+            if len(st.session_state["file_uploader"]) > 0:
+                rag_enabled = True
+            time.sleep(1) # help the spinner to show up
+            agent_text = _service.ask(user_text, rag_enabled)
+
+        st.session_state["messages"].append((user_text, True))
+        st.session_state["messages"].append((agent_text, False))
+
+
+def read_and_save_file():
+
+    for file in st.session_state["file_uploader"]:
+        with tempfile.NamedTemporaryFile(delete=False,suffix=f".{file.name.split('.')[-1]}") as tf:
+            tf.write(file.getbuffer())
+            file_path = tf.name
+
+        with st.spinner(f"Ingesting {file.name}"):
+            _service.ingest(file_path)
+        os.remove(file_path)
+
+    if len(st.session_state["file_uploader"]) > 0:
+        st.session_state["messages"].append(
+            ("File(s) successfully ingested", False)
+        )
+
+    if len(st.session_state["file_uploader"]) == 0:
+        _service.clear()
+        st.session_state["messages"].append(
+            ("Clearing all data", False)
+        )
+
+def page():
+    if len(st.session_state) == 0:
+        st.session_state["messages"] = []
+        _service.clear()
+
+    st.header("ChatIRIS")
+
+    st.subheader("Upload a document")
+    st.file_uploader(
+        "Upload document",
+        type=["pdf", "md", "txt"],
+        key="file_uploader",
+        on_change=read_and_save_file,
+        label_visibility="collapsed",
+        accept_multiple_files=True,
+    )
+
+    display_messages()
+    st.text_input("Message", key="user_input", on_change=process_input)
+
+
+if __name__ == "__main__":
+    page()
+```
+</spoiler>
+
 I'm just using :
 
 ```python
@@ -129,6 +213,51 @@ The business service is a simple business service that allows :
 - To ask questions
 - To clear the vector database
 
+<spoiler>
+
+```python
+from grongier.pex import BusinessService
+
+from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse
+
+class ChatService(BusinessService):
+
+    def on_init(self):
+        if not hasattr(self, "target"):
+            self.target = "ChatOperation"
+
+    def ingest(self, file_path: str):
+        # build message
+        msg = FileIngestionRequest(file_path=file_path)
+        # send message
+        self.send_request_sync(self.target, msg)
+
+    def ask(self, query: str, rag: bool = False):
+        # build message
+        msg = ChatRequest(query=query, rag=rag)
+        # send message
+        response = self.send_request_sync(self.target, msg)
+        # return response
+        if response:
+            self.log_info(f"response: {response.response}")
+            # check if dict response.response has key "result"
+            if "result" in response.response:
+                return response.response["result"]
+            else:
+                return response.response
+        else:
+            return None
+
+    def clear(self):
+        # build message
+        msg = ChatClearRequest()
+        # send message
+        self.send_request_sync(self.target, msg)
+```
+</spoiler>
+
+Basically, it's just a pass-through between to the operation.
+
 #### The business operation
 
 The business operation is a simple business operation that allows :
@@ -136,3 +265,66 @@ The business operation is a simple business operation that allows :
 - To index the documents
 - To search the documents
 - Use Langchain to generate the answer
+
+##### Parse the documents
+
+It can parse 3 types of documents:
+
+- Markdown
+- PDF
+- Text
+
+To keep it simple, we will just discuss the Markdown parser.
+
+<spoiler>
+
+```python
+    def ingest(self, request: FileIngestionRequest):
+        file_path = request.file_path
+        file_type = self._get_file_type(file_path)
+        if file_type == "pdf":
+            self._ingest_pdf(file_path)
+        elif file_type == "markdown":
+            self._ingest_markdown(file_path)
+        elif file_type == "text":
+            self._ingest_text(file_path)
+        else:
+            raise Exception(f"Unknown file type: {file_type}")
+
+    def _store_chunks(self, chunks):
+        ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
+        unique_ids = list(set(ids))
+        self.vector_store.add_documents(chunks, ids = unique_ids)
+        self.retriever = self.vector_store.as_retriever(
+            search_type="similarity_score_threshold",
+            search_kwargs={
+                "k": 3,
+                "score_threshold": 0.5,
+            },
+        )
+
+        self.chain = RetrievalQA.from_chain_type(
+            self.model,
+            retriever=self.retriever
+        )
+
+    def _ingest_markdown(self, file_path: str):
+        # Document loader
+        docs = TextLoader(file_path).load()
+
+        # MD splits
+        headers_to_split_on = [
+            ("#", "Header 1"),
+            ("##", "Header 2"),
+        ]
+
+        markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on)
+        md_header_splits = markdown_splitter.split_text(docs[0].page_content)
+
+        # Split
+        chunks = self.text_splitter.split_documents(md_header_splits)
+        chunks = filter_complex_metadata(chunks)
+
+        self._store_chunks(chunks)
+```
+</spoiler>
