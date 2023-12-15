@@ -2,79 +2,79 @@
 
 ![IRIS RAG Demo](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/title.jpg?raw=true)
 
-This is a simple demo of the IRIS with RAG (Retrieval Augmented Generation) example.
-The backend is written in Python using IRIS and [IoP](https://github.com/grongierisc/interoperability-embedded-python), the LLM model is `orca-mini` and served by the `ollama` server.
-The frontend is an chatbot written with Streamlit.
+Ceci est une simple démo de l'IRIS avec un exemple de RAG (Retrieval Augmented Generation).
+Le backend est écrit en Python en utilisant IRIS et IoP, le modèle LLM est `orca-mini` et est servi par le serveur `ollama`.
+Le frontend est un chatbot écrit avec Streamlit.
 
 - [1. IRIS RAG Demo](#1-iris-rag-demo)
-  - [1.1. What is RAG?](#11-what-is-rag)
-  - [1.2. How it works?](#12-how-it-works)
-  - [1.3. Installation the demo](#13-installation-the-demo)
+  - [1.1. Quest-ce que RAG?](#11-quest-ce-que-rag)
+  - [1.2. Comment ça marche?](#12-comment-ça-marche)
+  - [1.3. Installation de la démo](#13-installation-de-la-démo)
   - [1.4. Usage](#14-usage)
-  - [1.5. How the demo works?](#15-how-the-demo-works)
-    - [1.5.1. The frontend](#151-the-frontend)
-    - [1.5.2. The backend](#152-the-backend)
-      - [1.5.2.1. The business service](#1521-the-business-service)
-      - [1.5.2.2. The business process](#1522-the-business-process)
-      - [1.5.2.3. The LLM operation](#1523-the-llm-operation)
-      - [1.5.2.4. The Vector operation](#1524-the-vector-operation)
-  - [1.6. General remarks](#16-general-remarks)
+  - [1.5. Comment fonctionne la démo ?](#15-comment-fonctionne-la-démo-)
+    - [1.5.1. Le frontend](#151-le-frontend)
+    - [1.5.2. Le backend](#152-le-backend)
+      - [1.5.2.1. Le business service](#1521-le-business-service)
+      - [1.5.2.2. Le business process](#1522-le-business-process)
+      - [1.5.2.3. L'opération LLM](#1523-lopération-llm)
+      - [1.5.2.4. L'opération vectorielle](#1524-lopération-vectorielle)
+  - [1.6. Remarques générales](#16-remarques-générales)
 
 
-## 1.1. What is RAG?
+## 1.1. Quest-ce que RAG?
 
-RAG stand for Retrieval Augmented Generation, it bring the ability to use an LLM model (GPT-3.5/4, Mistral, Orca, etc.) with a **knowledge base**.
+RAG signifie Retrieval Augmented Generation, il permet d'utiliser un modèle LLM (GPT-3.5/4, Mistral, Orca, etc.) avec une **base de connaissances**.
 
+**Pourquoi est-ce important ?** Parce que cela permet d'utiliser une *base de connaissances* pour répondre aux questions, et d'utiliser le LLM pour générer la réponse.
 
-**Why is it important?** Because it allows to use an *knowledge base* to answer questions, and use the LLM to generate the answer.
+Par exemple, si vous demandez **"Qu'est-ce que le module grongier.pex ?"** directement au LLM, il ne pourra pas répondre, car il ne sait pas ce qu'est ce module (et peut-être que vous ne le savez pas non plus 🤪).
 
+Mais si vous posez la même question à RAG, il pourra répondre, car il utilisera la *base de connaissances* qui sait ce qu'est le module grongier.pex pour trouver la réponse.
 
-For example, if you ask **"What is the grongier.pex module?"** directly to the LLM, it will not be able to answer, because it does not know what is this module (and maybe you don't know it either 🤪).
+Maintenant que vous savez ce qu'est RAG, voyons comment cela fonctionne.
 
-But if you ask the same question to RAG, it will be able to answer, because it will use the *knowledge base* that know what grongier.pex module is to find the answer.
+## 1.2. Comment ça marche?
 
-Now that you know what is RAG, let's see how it works.
+Tout d'abord, nous devons comprendre comment fonctionne un LLM. Les LLM sont entraînés pour prédire le mot suivant, étant donné les mots précédents. Ainsi, si vous lui donnez une phrase, il essaiera de prédire le mot suivant, et ainsi de suite. Facile, non ?
 
-## 1.2. How it works?
-
-First, we need to understand how LLMS works. LLMS are trained to predict the next word, given the previous words. So, if you give it a sentence, it will try to predict the next word, and so on. Easy, right?
-
-To interact with an LLM, usually you need to give it a prompt, and it will generate the rest of the sentence. For example, if you give it the prompt `What is the grongier.pex module?`, it will generate the rest of the sentence, and it will look like this:
+Pour interagir avec un LLM, vous devez généralement lui donner une requête, et il générera le reste de la phrase. Par exemple, si vous lui donnez la requête `Qu'est-ce que le module grongier.pex ?`, il générera le reste de la phrase, et cela ressemblera à ceci :
 
 ```
-I'm sorry, but I'm not familiar with the Pex module you mentioned. Can you please provide more information or context about it?
+Je suis désolé, mais je ne connais pas le module Pex que vous avez mentionné. Pouvez-vous fournir plus d'informations ou de contexte à ce sujet ?
 ```
 
-Ok, as expected, it does not know what is the grongier.pex module. But what if we give it a prompt that contains the answer? For example, if we give it the prompt `What is the grongier.pex module? It is a module that allows you to do X, Y and Z.`, it will generate the rest of the sentence, and it will look like this:
+Ok, comme prévu, il ne sait pas ce qu'est le module grongier.pex. Mais que se passe-t-il si nous lui donnons une requête qui contient la réponse ? Par exemple, si nous lui donnons la requête `Qu'est-ce que le module grongier.pex ? C'est un module qui vous permet de faire X, Y et Z.`, il générera le reste de la phrase, et cela ressemblera à ceci :
 
 ```
-The grongier.pex module is a module that allows you to do X, Y and Z.
+Le module grongier.pex est un module qui vous permet de faire X, Y et Z.
 ```
 
-Ok, now it knows what is the grongier.pex module.
+Ok, maintenant il sait ce qu'est le module grongier.pex.
 
-But what if we don't know what is the grongier.pex module? How can we give it a prompt that contains the answer? 
-Well, that's where the *knowledge base* comes in.
+Mais que se passe-t-il si nous ne savons pas ce qu'est le module grongier.pex ? Comment pouvons-nous lui donner une requête qui contient la réponse ?
+Eh bien, c'est là que la *base de connaissances* entre en jeu.
 
 ![RAG](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/rag_schema.png?raw=true)
 
-The whole idea of RAG is to use the *knowledge base* to find the **context**, and then use the LLM to generate the answer.
+L'idée de RAG est d'utiliser la *base de connaissances* pour trouver le **contexte**, puis d'utiliser le LLM pour générer la réponse.
 
-To find the **context**, RAG will use a **retriever**. The **retriever** will search the *knowledge base* for the most relevant documents, and then RAG will use the LLM to generate the answer.
+Pour trouver le **contexte**, RAG utilisera un **retriever**. Le **retriever** recherchera la *base de connaissances* pour les documents les plus pertinents, puis RAG utilisera le LLM pour générer la réponse.
 
-To search the *knowledge base*, we will use vector search. 
+Pour rechercher la *base de connaissances*, nous utiliserons la recherche vectorielle.
 
-Vector search is a technique that allows to find the most relevant documents given a query. It works by converting the documents and the query into vectors, and then computing the cosine similarity between the query vector and the document vectors. The higher the cosine similarity, the more relevant the document is.
+La recherche vectorielle est une technique qui permet de trouver les documents les plus pertinents étant donné une requête. Elle fonctionne en convertissant les documents et la requête en vecteurs, puis en calculant la similarité cosinus entre le vecteur de la requête et les vecteurs des documents. Plus la similarité cosinus est élevée, plus le document est pertinent.
 
-For more information about vector search, you can read this [article](https://community.intersystems.com/post/vectors-support-well-almost). (Thanks @Dmitry Maslennikov for the article)
+Pour plus d'informations sur la recherche vectorielle, vous pouvez consulter [ce lien](https://community.intersystems.com/post/vectors-support-well-almost). Merci à @Dmitry Maslennikov pour son article.
 
 ![Vector Search](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/vector_search.jpg?raw=true)
 
-Now that we know how RAG works, let's see how to use it.
+Maintenant que nous savons comment fonctionne RAG, voyons comment l'utiliser.
 
-## 1.3. Installation the demo
+## 1.3. Installation de la démo
 
-Just clone the repo and run the `docker-compose up` command.
+Pour installer la démo, vous devez avoir Docker et Docker Compose installés sur votre machine.
+
+Ensuite, il suffit de cloner le repo et d'exécuter la commande `docker-compose up`.
 
 ```bash
 git clone https://github.com/grongierisc/iris-rag-demo
@@ -82,64 +82,64 @@ cd iris-rag-demo
 docker-compose up
 ```
 
-⚠️ everything is local, nothing is sent to the cloud, so be patient, it can take a few minutes to start.
+⚠️ tout est local, rien n'est envoyé dans le cloud, donc soyez patient, cela peut prendre quelques minutes pour démarrer.  
 
 ## 1.4. Usage
 
-Once the demo is started, you can access the frontend at http://localhost:8501.
+Une fois la démo démarrée, vous pouvez accéder au frontend à l'adresse http://localhost:8501.
 
 ![Frontend](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/iris_chat.png?raw=true)
 
-You can ask questions about the IRIS, for example:
+Vous pouvez poser des questions sur l'IRIS, par exemple :
 
-- What is the grongier.pex module?
+- Qu'est-ce que le module grongier.pex ?
 
 ![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/without_rag.png?raw=true)
 
-As you can see, the answer is not very good, because the LLM does not know what is the grongier.pex module.
+Comme vous pouvez le voir, la réponse n'est pas très bonne, car le LLM ne sait pas ce qu'est le module grongier.pex.
 
-Now, let's try with RAG:
+Maintenant, essayons avec RAG :
 
-Upload the `grongier.pex` module documentation, it's located in the `docs` folder, file `grongier.pex.md`.
+Uploader la documentation du module `grongier.pex`, elle se trouve dans le dossier `docs`, fichier `grongier.pex.md`.
 
-And ask the same question:
+Ensuite, posez la même question :
 
-- What is the grongier.pex module?
+- Qu'est-ce que le module grongier.pex ?
 
 ![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/with_rag.png?raw=true)
 
-As you can see, the answer is much better, because the LLM now knows what is the grongier.pex module.
+Comme vous pouvez le voir, la réponse est bien meilleure, car le LLM sait maintenant ce qu'est le module grongier.pex.
 
-You see details in the logs:
+Vous pouvez voir les détails dans les logs :
 
-Go to the management portal at http://localhost:53795/csp/irisapp/EnsPortal.ProductionConfig.zen?$NAMESPACE=IRISAPP&$NAMESPACE=IRISAPP& and click on the `Messages` tab.
+Aller dans le portail de gestion à l'adresse http://localhost:53795/csp/irisapp/EnsPortal.ProductionConfig.zen?$NAMESPACE=IRISAPP&$NAMESPACE=IRISAPP& et cliquer sur l'onglet `Messages`.
 
-First you will see the message sent to the RAG process:
+Premièrement, vous verrez le message envoyé au processus RAG :
 
 ![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_query.png?raw=true)
 
-Then the search query in the *knowledge base* (vector database):
+Ensuite, la requête de recherche dans la *base de connaissances* (base de données vectorielle) :
 
 ![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_result_vector.png?raw=true)
 
-And finally the new prompt sent to the LLM: 
+Et enfin la nouvelle requête envoyée au LLM :
 
 ![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_new_query.png?raw=true)
 
-## 1.5. How the demo works?
+## 1.5. Comment fonctionne la démo ?
 
-The demo is composed of 3 parts:
+La démo est composée de 3 parties :
 
-- The frontend, written with Streamlit
-- The backend, written with Python and IRIS
-- The *knowledge base* Chroma an vector database
-- The LLM, Orca-mini, served by the Ollama server
+- Le frontend, écrit avec Streamlit
+- Le backend, écrit avec Python et IRIS
+- La *base de connaissances* Chroma et la base de données vectorielle
+- Le LLM, Orca-mini, servi par le serveur Ollama
 
-### 1.5.1. The frontend
+### 1.5.1. Le frontend
 
-The frontend is written with Streamlit, it's a simple chatbot that allows you to ask questions.
+Le frontend est écrit avec Streamlit, c'est un simple chatbot qui vous permet de poser des questions.
 
-Nothing fancy here, just a simple chatbot.
+Rien de bien compliqué ici, juste un simple chatbot.
 
 <spoiler>
 
@@ -225,40 +225,40 @@ if __name__ == "__main__":
 ```
 </spoiler>
 
-💡 I'm just using :
+💡 Je n'utilise que :
 
 ```python
 _service = Director.create_python_business_service("ChatService")
 ```
 
-To create a binding between the frontend and the backend.
+Pour créer un lien entre le frontend et le backend.
 
-`ChatService` is a simple business service in the interoperabilty production.
+`ChatService` est un simple service métier dans la production d'interopérabilité.
 
-### 1.5.2. The backend
+### 1.5.2. Le backend
 
-The backend is written with Python and IRIS.
+Le backend est écrit avec Python et IRIS.
 
-It's composed of 3 parts:
+Il est composé de 3 parties :
 
-- The business service
-  - entry point of the frontend
-- The business proess
-  - perform the search in the *knowledge base* if needed
-- Tow business operations
-  - One for the *knowledge base*
-    - Ingest the documents
-    - Search the documents
-    - Clear the documents
-  - One for the LLM
-    - Generate the answer
+- Le service métier
+  - point d'entrée du frontend
+- Le processus métier
+  - effectuer la recherche dans la *base de connaissances* si nécessaire
+- Deux opérations métier
+  - Une pour la *base de connaissances*
+    - Ingestion des documents
+    - Recherche des documents
+    - Effacer les documents
+  - Une pour le LLM
+    - Générer la réponse
 
-#### 1.5.2.1. The business service
+#### 1.5.2.1. Le business service
 
-The business service is a simple business service that allows :
-- To upload documents
-- To ask questions
-- To clear the vector database
+Le service métier est un simple service métier qui permet :
+- D'uploader des documents
+- De poser des questions
+- De vider la base de données vectorielle
 
 <spoiler>
 
@@ -297,11 +297,11 @@ class ChatService(BusinessService):
 ```
 </spoiler>
 
-Basically, it's just a pass-through between to operation and process.
+Si vous regardez le code, vous verrez que le service métier est très simple, il ne fait que passer entre l'opération et le processus.
 
-#### 1.5.2.2. The business process
+#### 1.5.2.2. Le business process
 
-The business process is a simple process that allows to search the *knowledge base* if needed.
+Le processus métier est aussi un simple processus qui permet de rechercher la *base de connaissances* si nécessaire.
 
 <spoiler>
 
@@ -351,13 +351,13 @@ class ChatProcess(BusinessProcess):
 ```
 </spoiler>
 
-It's really simple, it just send a message to the *knowledge base* to search the documents.
+Comme je le disais, le processus est très simple, il ne fait que passer entre l'opération et le processus.
 
-If the *knowledge base* returns documents, then it will use the documents content as the prompt, otherwise it will use the query as the prompt.
+Si la recherche vectorielle retourne des documents, alors il utilisera le contenu des documents comme prompt, sinon il utilisera la requête comme prompt.
 
-#### 1.5.2.3. The LLM operation
+#### 1.5.2.3. L'opération LLM
 
-The LLM operation is a simple operation that allows to generate the answer.
+L'opération LLM est une simple opération qui permet de générer la réponse.
 
 <spoiler>
 
@@ -377,11 +377,11 @@ class ChatOperation(BusinessOperation):
 
 </spoiler>
 
-It's really simple, it just send a message to the LLM to generate the answer.
+Difficile de faire plus simple, non ?
 
-#### 1.5.2.4. The Vector operation
+#### 1.5.2.4. L'opération vectorielle
 
-The vector operation is a simple operation that allows to ingest documents, search documents and clear the vector database.
+L'opération vectorielle est une opération qui permet d'ingérer des documents, de rechercher des documents et de vider la base de données vectorielle.
 
 <spoiler>
 
@@ -474,17 +474,21 @@ class VectorOperation(BusinessOperation):
 
 </spoiler>
 
-If the documents are too big, then the vector database will not be able to store them, so we need to split them into chunks.
+Si vous regardez le code, vous verrez que l'opération vectorielle est un peu plus complexe que les autres.
+Les raisons sont les suivantes :
 
-If the documents is a PDF, then we will use the `PyPDFLoader` to load the PDF, otherwise we will use the `TextLoader` to load the document.
+- Nous devons ingérer des documents
+- Nous devons rechercher des documents
+- Nous devons vider la base de données vectorielle
 
-Then we will split the document into chunks using the `RecursiveCharacterTextSplitter`.
+Pour ingérer des documents, nous devons d'abord les charger, puis les diviser en morceaux, puis les stocker dans la base de données vectorielle.
 
-Finally, we will store the chunks into the vector database.
+Le processus de diviser est **important**, car cela permettra à la recherche vectorielle de trouver les documents les plus pertinents.
 
-If the documents is a Markdown, then we will use the `MarkdownHeaderTextSplitter` to split the document into chunks.
-We also use the the headers to split the document into chunks.
+Par exemple, si nous avons un document qui contient 1000 mots, et que nous le divisons en 10 morceaux de 100 mots, alors la recherche vectorielle pourra trouver les documents les plus pertinents, car elle pourra comparer les vecteurs de la requête avec les vecteurs des morceaux.
 
-## 1.6. General remarks
+Dans le cas des markdowns, nous utilisons également les en-têtes pour diviser le document en morceaux.
 
-All of this can be done with `langchains`, but I wanted to show you how to do it with the interoperability framework. And make it more accessible to everyone to understand how it works.
+## 1.6. Remarques générales
+
+Tout cela peut être fait avec `langchains`, mais je voulais vous montrer comment le faire avec le framework d'interopérabilité. Et le rendre plus accessible à tous pour comprendre comment le principe des RAG fonctionne.
