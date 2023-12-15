@@ -1,4 +1,4 @@
-# IRIS RAG Demo
+# 1. IRIS RAG Demo
 
 ![IRIS RAG Demo](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/title.jpg?raw=true)
 
@@ -6,7 +6,22 @@ This is a simple demo of the IRIS with RAG (Retrieval Augmented Generation) exam
 The backend is written in Python using IRIS and IoP, the LLM model is `orca-mini` and served by the `ollama` server.
 The frontend is an chatbot written with Streamlit.
 
-## What is RAG?
+- [1. IRIS RAG Demo](#1-iris-rag-demo)
+  - [1.1. What is RAG?](#11-what-is-rag)
+  - [1.2. How it works?](#12-how-it-works)
+  - [1.3. Installation the demo](#13-installation-the-demo)
+  - [1.4. Usage](#14-usage)
+  - [1.5. How the demo works?](#15-how-the-demo-works)
+    - [1.5.1. The frontend](#151-the-frontend)
+    - [1.5.2. The backend](#152-the-backend)
+      - [1.5.2.1. The business service](#1521-the-business-service)
+      - [1.5.2.2. The business process](#1522-the-business-process)
+      - [1.5.2.3. The LLM operation](#1523-the-llm-operation)
+      - [1.5.2.4. The Vector operation](#1524-the-vector-operation)
+  - [1.6. General remarks](#16-general-remarks)
+
+
+## 1.1. What is RAG?
 
 RAG stand for Retrieval Augmented Generation, it bring the ability to use an LLM model (GPT-3.5/4, Mistral, Orca, etc.) with a **knowledge base**.
 
@@ -20,7 +35,7 @@ But if you ask the same question to RAG, it will be able to answer, because it w
 
 Now that you know what is RAG, let's see how it works.
 
-## How it works?
+## 1.2. How it works?
 
 First, we need to understand how LLMS works. LLMS are trained to predict the next word, given the previous words. So, if you give it a sentence, it will try to predict the next word, and so on. Easy, right?
 
@@ -36,12 +51,17 @@ Ok, as expected, it does not know what is the grongier.pex module. But what if w
 The grongier.pex module is a module that allows you to do X, Y and Z.
 ```
 
-Ok, now it knows what is the grongier.pex module. But what if we don't know what is the grongier.pex module? How can we give it a prompt that contains the answer? Well, that's where the *knowledge base* comes in.
+Ok, now it knows what is the grongier.pex module.
+
+But what if we don't know what is the grongier.pex module? How can we give it a prompt that contains the answer? 
+Well, that's where the *knowledge base* comes in.
 
 ![RAG](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/rag_schema.png?raw=true)
 
 The whole idea of RAG is to use the *knowledge base* to find the **context**, and then use the LLM to generate the answer.
+
 To find the **context**, RAG will use a **retriever**. The **retriever** will search the *knowledge base* for the most relevant documents, and then RAG will use the LLM to generate the answer.
+
 To search the *knowledge base*, we will use vector search. 
 
 Vector search is a technique that allows to find the most relevant documents given a query. It works by converting the documents and the query into vectors, and then computing the cosine similarity between the query vector and the document vectors. The higher the cosine similarity, the more relevant the document is.
@@ -50,7 +70,7 @@ Vector search is a technique that allows to find the most relevant documents giv
 
 Now that we know how RAG works, let's see how to use it.
 
-## Installation the demo
+## 1.3. Installation the demo
 
 Just clone the repo and run the `docker-compose up` command.
 
@@ -62,7 +82,7 @@ docker-compose up
 
 ⚠️ everything is local, nothing is sent to the cloud, so be patient, it can take a few minutes to start.
 
-## Usage
+## 1.4. Usage
 
 Once the demo is started, you can access the frontend at http://localhost:8501.
 
@@ -88,7 +108,23 @@ And ask the same question:
 
 As you can see, the answer is much better, because the LLM now knows what is the grongier.pex module.
 
-## How the demo works?
+You see details in the logs:
+
+Go to the management portal at http://localhost:53795/csp/irisapp/EnsPortal.ProductionConfig.zen?$NAMESPACE=IRISAPP&$NAMESPACE=IRISAPP& and click on the `Messages` tab.
+
+First you will see the message sent to the RAG process:
+
+![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_query.png?raw=true)
+
+Then the search query in the *knowledge base* (vector database):
+
+![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_query_vector.png?raw=true)
+
+And finally the new prompt sent to the LLM: 
+
+![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_new_query.png?raw=true)
+
+## 1.5. How the demo works?
 
 The demo is composed of 3 parts:
 
@@ -97,7 +133,7 @@ The demo is composed of 3 parts:
 - The *knowledge base* Chroma an vector database
 - The LLM, Orca-mini, served by the Ollama server
 
-### The frontend
+### 1.5.1. The frontend
 
 The frontend is written with Streamlit, it's a simple chatbot that allows you to ask questions.
 
@@ -187,7 +223,7 @@ if __name__ == "__main__":
 ```
 </spoiler>
 
-I'm just using :
+💡 I'm just using :
 
 ```python
 _service = Director.create_python_business_service("ChatService")
@@ -197,16 +233,25 @@ To create a binding between the frontend and the backend.
 
 `ChatService` is a simple business service in the interoperabilty production.
 
-### The backend
+### 1.5.2. The backend
 
 The backend is written with Python and IRIS.
 
-It's composed of 2 parts:
+It's composed of 3 parts:
 
 - The business service
-- The business operation
+  - entry point of the frontend
+- The business proess
+  - perform the search in the *knowledge base* if needed
+- Tow business operations
+  - One for the *knowledge base*
+    - Ingest the documents
+    - Search the documents
+    - Clear the documents
+  - One for the LLM
+    - Generate the answer
 
-#### The business service
+#### 1.5.2.1. The business service
 
 The business service is a simple business service that allows :
 - To upload documents
@@ -218,67 +263,138 @@ The business service is a simple business service that allows :
 ```python
 from grongier.pex import BusinessService
 
-from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse
+from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest
 
 class ChatService(BusinessService):
 
     def on_init(self):
-        if not hasattr(self, "target"):
-            self.target = "ChatOperation"
+        if not hasattr(self, "target_chat"):
+            self.target_chat = "ChatProcess"
+        if not hasattr(self, "target_vector"):
+            self.target_vector = "VectorOperation"
 
     def ingest(self, file_path: str):
         # build message
         msg = FileIngestionRequest(file_path=file_path)
         # send message
-        self.send_request_sync(self.target, msg)
+        self.send_request_sync(self.target_vector, msg)
 
     def ask(self, query: str, rag: bool = False):
         # build message
-        msg = ChatRequest(query=query, rag=rag)
+        msg = ChatRequest(query=query)
         # send message
-        response = self.send_request_sync(self.target, msg)
+        response = self.send_request_sync(self.target_chat, msg)
         # return response
-        if response:
-            self.log_info(f"response: {response.response}")
-            # check if dict response.response has key "result"
-            if "result" in response.response:
-                return response.response["result"]
-            else:
-                return response.response
-        else:
-            return None
+        return response.response
 
     def clear(self):
         # build message
         msg = ChatClearRequest()
         # send message
-        self.send_request_sync(self.target, msg)
+        self.send_request_sync(self.target_vector, msg)
 ```
 </spoiler>
 
-Basically, it's just a pass-through between to the operation.
+Basically, it's just a pass-through between to operation and process.
 
-#### The business operation
+#### 1.5.2.2. The business process
 
-The business operation is a simple business operation that allows :
-- To parse the documents
-- To index the documents
-- To search the documents
-- Use Langchain to generate the answer
-
-##### Parse the documents
-
-It can parse 3 types of documents:
-
-- Markdown
-- PDF
-- Text
-
-To keep it simple, we will just discuss the Markdown parser.
+The business process is a simple process that allows to search the *knowledge base* if needed.
 
 <spoiler>
 
 ```python
+from grongier.pex import BusinessProcess
+
+from rag.msg import ChatRequest, ChatResponse, VectorSearchRequest
+
+class ChatProcess(BusinessProcess):
+    """
+    the aim of this process is to generate a prompt from a query
+    if the vector similarity search returns a document, then we use the document's content as the prompt
+    if the vector similarity search returns nothing, then we use the query as the prompt
+    """
+    def on_init(self):
+        if not hasattr(self, "target_vector"):
+            self.target_vector = "VectorOperation"
+        if not hasattr(self, "target_chat"):
+            self.target_chat = "ChatOperation"
+
+        # prompt template
+        self.prompt_template = "Given the context: \n {context} \n Answer the question: {question}"
+
+
+    def ask(self, request: ChatRequest):
+        query = request.query
+        prompt = ""
+        # build message
+        msg = VectorSearchRequest(query=query)
+        # send message
+        response = self.send_request_sync(self.target_vector, msg)
+        # if we have a response, then use the first document's content as the prompt
+        if response.docs:
+            # add each document's content to the context
+            context = "\n".join([doc['page_content'] for doc in response.docs])
+            # build the prompt
+            prompt = self.prompt_template.format(context=context, question=query)
+        else:
+            # use the query as the prompt
+            prompt = query
+        # build message
+        msg = ChatRequest(query=prompt)
+        # send message
+        response = self.send_request_sync(self.target_chat, msg)
+        # return response
+        return response
+```
+</spoiler>
+
+It's really simple, it just send a message to the *knowledge base* to search the documents.
+
+If the *knowledge base* returns documents, then it will use the documents content as the prompt, otherwise it will use the query as the prompt.
+
+#### 1.5.2.3. The LLM operation
+
+The LLM operation is a simple operation that allows to generate the answer.
+
+<spoiler>
+
+```python
+
+class ChatOperation(BusinessOperation):
+
+    def __init__(self):
+        self.model = None
+
+    def on_init(self):
+        self.model = Ollama(base_url="http://ollama:11434",model="orca-mini")
+
+    def ask(self, request: ChatRequest):
+        return ChatResponse(response=self.model(request.query))
+```
+
+</spoiler>
+
+It's really simple, it just send a message to the LLM to generate the answer.
+
+#### 1.5.2.4. The Vector operation
+
+The vector operation is a simple operation that allows to ingest documents, search documents and clear the vector database.
+
+<spoiler>
+
+```python
+
+class VectorOperation(BusinessOperation):
+
+    def __init__(self):
+        self.text_splitter = None
+        self.vector_store = None
+
+    def on_init(self):
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
+        self.vector_store = Chroma(persist_directory="vector",embedding_function=FastEmbedEmbeddings())
+
     def ingest(self, request: FileIngestionRequest):
         file_path = request.file_path
         file_type = self._get_file_type(file_path)
@@ -291,22 +407,48 @@ To keep it simple, we will just discuss the Markdown parser.
         else:
             raise Exception(f"Unknown file type: {file_type}")
 
+    def clear(self, request: ChatClearRequest):
+        self.on_tear_down()
+
+    def similar(self, request: VectorSearchRequest):
+        # do a similarity search
+        docs = self.vector_store.similarity_search(request.query)
+        # return the response
+        return VectorSearchResponse(docs=docs)
+
+    def on_tear_down(self):
+        docs = self.vector_store.get()
+        for id in docs['ids']:
+            self.vector_store.delete(id)
+        
+    def _get_file_type(self, file_path: str):
+        if file_path.lower().endswith(".pdf"):
+            return "pdf"
+        elif file_path.lower().endswith(".md"):
+            return "markdown"
+        elif file_path.lower().endswith(".txt"):
+            return "text"
+        else:
+            return "unknown"
+
     def _store_chunks(self, chunks):
         ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
         unique_ids = list(set(ids))
         self.vector_store.add_documents(chunks, ids = unique_ids)
-        self.retriever = self.vector_store.as_retriever(
-            search_type="similarity_score_threshold",
-            search_kwargs={
-                "k": 3,
-                "score_threshold": 0.5,
-            },
-        )
+        
+    def _ingest_text(self, file_path: str):
+        docs = TextLoader(file_path).load()
+        chunks = self.text_splitter.split_documents(docs)
+        chunks = filter_complex_metadata(chunks)
 
-        self.chain = RetrievalQA.from_chain_type(
-            self.model,
-            retriever=self.retriever
-        )
+        self._store_chunks(chunks)
+        
+    def _ingest_pdf(self, file_path: str):
+        docs = PyPDFLoader(file_path=file_path).load()
+        chunks = self.text_splitter.split_documents(docs)
+        chunks = filter_complex_metadata(chunks)
+
+        self._store_chunks(chunks)
 
     def _ingest_markdown(self, file_path: str):
         # Document loader
@@ -327,4 +469,20 @@ To keep it simple, we will just discuss the Markdown parser.
 
         self._store_chunks(chunks)
 ```
+
 </spoiler>
+
+If the documents are too big, then the vector database will not be able to store them, so we need to split them into chunks.
+
+If the documents is a PDF, then we will use the `PyPDFLoader` to load the PDF, otherwise we will use the `TextLoader` to load the document.
+
+Then we will split the document into chunks using the `RecursiveCharacterTextSplitter`.
+
+Finally, we will store the chunks into the vector database.
+
+If the documents is a Markdown, then we will use the `MarkdownHeaderTextSplitter` to split the document into chunks.
+We also use the the headers to split the document into chunks.
+
+## 1.6. General remarks
+
+All of this can be done with `langchains`, but I wanted to show you how to do it with the interoperability framework. And make it more accessible to everyone to understand how it works.
