@@ -118,7 +118,7 @@ First you will see the message sent to the RAG process:
 
 Then the search query in the *knowledge base* (vector database):
 
-![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_query_vector.png?raw=true)
+![Message](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/trace_result_vector.png?raw=true)
 
 And finally the new prompt sent to the LLM: 
 
