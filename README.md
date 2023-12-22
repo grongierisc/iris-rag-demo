@@ -86,7 +86,7 @@ docker-compose up
 
 ## 1.4. Usage
 
-Once the demo is started, you can access the frontend at http://localhost:8501.
+Once the demo is started, you can access the frontend at http://localhost:8051.
 
 ![Frontend](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/iris_chat.png?raw=true)
 
