@@ -16,7 +16,7 @@ services:
       - 53773
     volumes:
       - ./:/irisdev/app
-    entrypoint: ["sh", "/irisdev/app/entrypoint.sh"]
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
   ollama:
     image: ollama/ollama:latest
     environment:

@@ -6,6 +6,7 @@ from langchain.embeddings import FastEmbedEmbeddings
 from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
 from langchain.vectorstores.utils import filter_complex_metadata
+from langchain_iris import IRISVector
 
 from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse, VectorSearchRequest, VectorSearchResponse
 
@@ -17,7 +18,7 @@ class VectorOperation(BusinessOperation):
 
     def on_init(self):
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
-        self.vector_store = Chroma(persist_directory="vector",embedding_function=FastEmbedEmbeddings())
+        self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
 
     def ingest(self, request: FileIngestionRequest):
         file_path = request.file_path
@@ -56,9 +57,7 @@ class VectorOperation(BusinessOperation):
             return "unknown"
 
     def _store_chunks(self, chunks):
-        ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
-        unique_ids = list(set(ids))
-        self.vector_store.add_documents(chunks, ids = unique_ids)
+        self.vector_store.add_documents(chunks)
         
     def _ingest_text(self, file_path: str):
         docs = TextLoader(file_path).load()

@@ -1,5 +1,6 @@
 iris-pex-embedded-python>=2.0.0
-langchain
+langchain==0.0.348
+langchain-iris==0.0.3
 streamlit
 streamlit-chat
 pypdf
