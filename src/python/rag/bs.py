@@ -8,7 +8,7 @@ class ChatService(BusinessService):
         if not hasattr(self, "target_chat"):
             self.target_chat = "ChatProcess"
         if not hasattr(self, "target_vector"):
-            self.target_vector = "VectorOperation"
+            self.target_vector = "IrisVectorOperation"
 
     def ingest(self, file_path: str):
         # build message

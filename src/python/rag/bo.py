@@ -1,4 +1,5 @@
 import uuid
+from typing import Union
 from grongier.pex import BusinessOperation
 from langchain.vectorstores import Chroma
 from langchain.llms import Ollama
@@ -10,15 +11,11 @@ from langchain_iris import IRISVector
 
 from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse, VectorSearchRequest, VectorSearchResponse
 
-class VectorOperation(BusinessOperation):
+class VectorBaseOperation(BusinessOperation):
 
     def __init__(self):
         self.text_splitter = None
-        self.vector_store = None
-
-    def on_init(self):
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
-        self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
+        self.vector_store = Union[IRISVector, Chroma]
 
     def ingest(self, request: FileIngestionRequest):
         file_path = request.file_path
@@ -43,6 +40,7 @@ class VectorOperation(BusinessOperation):
 
     def on_tear_down(self):
         docs = self.vector_store.get()
+        self.log_info(f"Deleting {len(docs['ids'])} documents")
         for id in docs['ids']:
             self.vector_store.delete(id)
         
@@ -57,7 +55,9 @@ class VectorOperation(BusinessOperation):
             return "unknown"
 
     def _store_chunks(self, chunks):
-        self.vector_store.add_documents(chunks)
+        ids = [str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.page_content)) for doc in chunks]
+        unique_ids = list(set(ids))
+        self.vector_store.add_documents(chunks, ids = unique_ids)
         
     def _ingest_text(self, file_path: str):
         docs = TextLoader(file_path).load()
@@ -91,6 +91,19 @@ class VectorOperation(BusinessOperation):
         chunks = filter_complex_metadata(chunks)
 
         self._store_chunks(chunks)
+
+class IrisVectorOperation(VectorBaseOperation):
+
+    def on_init(self):
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
+        self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
+
+class ChromaVectorOperation(VectorBaseOperation):
+
+    def on_init(self):
+        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
+        self.vector_store = Chroma(collection_name="vector",embedding_function=FastEmbedEmbeddings())
+
 
 class ChatOperation(BusinessOperation):
 

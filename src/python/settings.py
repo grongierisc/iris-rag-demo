@@ -1,4 +1,4 @@
-from rag.bo import ChatOperation, VectorOperation
+from rag.bo import ChatOperation, IrisVectorOperation, ChromaVectorOperation
 from rag.bs import ChatService
 from rag.bp import ChatProcess
 
@@ -6,7 +6,8 @@ CLASSES = {
     "Python.ChatService": ChatService,
     "Python.ChatOperation": ChatOperation,
     "Python.ChatProcess": ChatProcess,
-    "Python.VectorOperation": VectorOperation
+    "Python.IrisVectorOperation": IrisVectorOperation,
+    "Python.ChromaVectorOperation": ChromaVectorOperation,
 }
 
 PRODUCTIONS = [{
@@ -25,7 +26,7 @@ PRODUCTIONS = [{
                     {
                         "@Target": "Host",
                         "@Name": "%settings",
-                        "#text": "target=ChatOperation"
+                        "#text": "target_vector=IrisVectorOperation\ntarget_chat=ChatOperation"
                     }
                 ]
             },
@@ -42,13 +43,18 @@ PRODUCTIONS = [{
                     {
                         "@Target": "Host",
                         "@Name": "%settings",
-                        "#text": "target_vector=VectorOperation\ntarget_chat=ChatOperation"
+                        "#text": "target_vector=IrisVectorOperation\ntarget_chat=ChatOperation"
                     }
                 ]
             },
             {
-                "@Name": "VectorOperation",
-                "@ClassName": "Python.VectorOperation",
+                "@Name": "IrisVectorOperation",
+                "@ClassName": "Python.IrisVectorOperation",
+                "@Enabled": "true"
+            },
+            {
+                "@Name": "ChromaVectorOperation",
+                "@ClassName": "Python.ChromaVectorOperation",
                 "@Enabled": "true"
             }
         ]
