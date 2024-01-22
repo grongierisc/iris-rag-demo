@@ -1,6 +1,6 @@
 {
   "objectscript.conn": {
-    "active": true,
+    "active": false,
     "host": "localhost",
     "port": 53795,
     "ns": "IRISAPP",
