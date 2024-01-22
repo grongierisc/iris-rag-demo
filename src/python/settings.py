@@ -26,7 +26,7 @@ PRODUCTIONS = [{
                     {
                         "@Target": "Host",
                         "@Name": "%settings",
-                        "#text": "target_vector=IrisVectorOperation\ntarget_chat=ChatOperation"
+                        "#text": "target=ChatProcess"
                     }
                 ]
             },
@@ -43,7 +43,7 @@ PRODUCTIONS = [{
                     {
                         "@Target": "Host",
                         "@Name": "%settings",
-                        "#text": "target_vector=IrisVectorOperation\ntarget_chat=ChatOperation"
+                        "#text": "target_vector=ChromaVectorOperation\ntarget_chat=ChatOperation"
                     }
                 ]
             },

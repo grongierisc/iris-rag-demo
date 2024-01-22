@@ -1,6 +1,6 @@
 from grongier.pex import BusinessProcess
 
-from rag.msg import ChatRequest, ChatResponse, VectorSearchRequest
+from rag.msg import ChatRequest, ChatResponse, VectorSearchRequest, ChatClearRequest, FileIngestionRequest
 
 class ChatProcess(BusinessProcess):
     """
@@ -10,7 +10,7 @@ class ChatProcess(BusinessProcess):
     """
     def on_init(self):
         if not hasattr(self, "target_vector"):
-            self.target_vector = "IrisVectorOperation"
+            self.target_vector = "ChromaVectorOperation"
         if not hasattr(self, "target_chat"):
             self.target_chat = "ChatOperation"
 
@@ -40,3 +40,11 @@ class ChatProcess(BusinessProcess):
         response = self.send_request_sync(self.target_chat, msg)
         # return response
         return response
+
+    def clear(self, request: ChatClearRequest):
+        # send message
+        self.send_request_sync(self.target_vector, request)
+
+    def ingest(self, request: FileIngestionRequest):
+        # send message
+        self.send_request_sync(self.target_vector, request)
