@@ -1,5 +1,6 @@
 import uuid
 from typing import Union
+from sqlalchemy import text
 from grongier.pex import BusinessOperation
 from langchain.vectorstores import Chroma
 from langchain.llms import Ollama
@@ -98,6 +99,13 @@ class IrisVectorOperation(VectorBaseOperation):
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
         self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
 
+    def on_tear_down(self):
+        docs = self.vector_store.get()
+        self.log_info(f"Deleting {len(docs['ids'])} documents")
+        with self.vector_store._conn.begin():
+            for id in docs['ids']:
+                self.vector_store._conn.execute(text("delete from vector where id = :id"), {"id": id})
+                                     
 class ChromaVectorOperation(VectorBaseOperation):
 
     def on_init(self):
