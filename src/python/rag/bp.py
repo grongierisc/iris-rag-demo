@@ -10,7 +10,7 @@ class ChatProcess(BusinessProcess):
     """
     def on_init(self):
         if not hasattr(self, "target_vector"):
-            self.target_vector = "ChromaVectorOperation"
+            self.target_vector = "IrisVectorOperation"
         if not hasattr(self, "target_chat"):
             self.target_chat = "ChatOperation"
 

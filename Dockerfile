@@ -1,4 +1,3 @@
-#ARG IMAGE=intersystemsdc/iris-community:latest
 ARG IMAGE=intersystemsdc/iris-community:2024.1-preview
 FROM $IMAGE 
 
