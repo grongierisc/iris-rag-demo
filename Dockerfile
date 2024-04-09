@@ -1,4 +1,4 @@
-ARG IMAGE=intersystemsdc/iris-community:2024.1-preview
+ARG IMAGE=intersystemsdc/iris-community:latest
 FROM $IMAGE 
 
 WORKDIR /irisdev/app
