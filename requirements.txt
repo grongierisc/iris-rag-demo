@@ -1,5 +1,5 @@
 iris-pex-embedded-python==2.3.24
-langchain>=0.0.348
+langchain==0.0.348
 langchain-iris>=0.1.1
 streamlit
 streamlit-chat
