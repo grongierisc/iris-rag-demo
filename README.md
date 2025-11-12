@@ -29,9 +29,9 @@ RAG stand for Retrieval Augmented Generation, it bring the ability to use an LLM
 **Why is it important?** Because it allows to use an *knowledge base* to answer questions, and use the LLM to generate the answer.
 
 
-For example, if you ask **"What is the grongier.pex module?"** directly to the LLM, it will not be able to answer, because it does not know what is this module (and maybe you don't know it either 🤪).
+For example, if you ask **"What is the iop module?"** directly to the LLM, it will not be able to answer, because it does not know what is this module (and maybe you don't know it either 🤪).
 
-But if you ask the same question to RAG, it will be able to answer, because it will use the *knowledge base* that know what grongier.pex module is to find the answer.
+But if you ask the same question to RAG, it will be able to answer, because it will use the *knowledge base* that know what iop module is to find the answer.
 
 Now that you know what is RAG, let's see how it works.
 
@@ -39,21 +39,21 @@ Now that you know what is RAG, let's see how it works.
 
 First, we need to understand how LLMS works. LLMS are trained to predict the next word, given the previous words. So, if you give it a sentence, it will try to predict the next word, and so on. Easy, right?
 
-To interact with an LLM, usually you need to give it a prompt, and it will generate the rest of the sentence. For example, if you give it the prompt `What is the grongier.pex module?`, it will generate the rest of the sentence, and it will look like this:
+To interact with an LLM, usually you need to give it a prompt, and it will generate the rest of the sentence. For example, if you give it the prompt `What is the iop module?`, it will generate the rest of the sentence, and it will look like this:
 
 ```
 I'm sorry, but I'm not familiar with the Pex module you mentioned. Can you please provide more information or context about it?
 ```
 
-Ok, as expected, it does not know what is the grongier.pex module. But what if we give it a prompt that contains the answer? For example, if we give it the prompt `What is the grongier.pex module? It is a module that allows you to do X, Y and Z.`, it will generate the rest of the sentence, and it will look like this:
+Ok, as expected, it does not know what is the iop module. But what if we give it a prompt that contains the answer? For example, if we give it the prompt `What is the iop module? It is a module that allows you to do X, Y and Z.`, it will generate the rest of the sentence, and it will look like this:
 
 ```
-The grongier.pex module is a module that allows you to do X, Y and Z.
+The iop module is a module that allows you to do X, Y and Z.
 ```
 
-Ok, now it knows what is the grongier.pex module.
+Ok, now it knows what is the iop module.
 
-But what if we don't know what is the grongier.pex module? How can we give it a prompt that contains the answer? 
+But what if we don't know what is the iop module? How can we give it a prompt that contains the answer? 
 Well, that's where the *knowledge base* comes in.
 
 ![RAG](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/rag_schema.png?raw=true)
@@ -92,23 +92,23 @@ Once the demo is started, you can access the frontend at http://localhost:8051.
 
 You can ask questions about the IRIS, for example:
 
-- What is the grongier.pex module?
+- What is the iop module?
 
 ![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/without_rag.png?raw=true)
 
-As you can see, the answer is not very good, because the LLM does not know what is the grongier.pex module.
+As you can see, the answer is not very good, because the LLM does not know what is the iop module.
 
 Now, let's try with RAG:
 
-Upload the `grongier.pex` module documentation, it's located in the `docs` folder, file `grongier.pex.md`.
+Upload the `iop` module documentation, it's located in the `docs` folder, file `iop.md`.
 
 And ask the same question:
 
-- What is the grongier.pex module?
+- What is the iop module?
 
 ![Question](https://github.com/grongierisc/iris-rag-demo/blob/master/misc/with_rag.png?raw=true)
 
-As you can see, the answer is much better, because the LLM now knows what is the grongier.pex module.
+As you can see, the answer is much better, because the LLM now knows what is the iop module.
 
 You see details in the logs:
 
@@ -150,7 +150,7 @@ import time
 import streamlit as st
 from streamlit_chat import message
 
-from grongier.pex import Director
+from iop import Director
 
 _service = Director.create_python_business_service("ChatService")
 
@@ -263,7 +263,7 @@ The business service is a simple business service that allows :
 <spoiler>
 
 ```python
-from grongier.pex import BusinessService
+from iop import BusinessService
 
 from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest
 
@@ -306,7 +306,7 @@ The business process is a simple process that allows to search the *knowledge ba
 <spoiler>
 
 ```python
-from grongier.pex import BusinessProcess
+from iop import BusinessProcess
 
 from rag.msg import ChatRequest, ChatResponse, VectorSearchRequest
 

@@ -1,7 +1,10 @@
 iris-pex-embedded-python
 sqlalchemy-iris
-langchain==0.0.348
-langchain-iris>=0.1.1
+langchain==1.0.5
+langchain-community
+langchain-ollama
+langchain-text-splitters
+langchain-iris
 streamlit
 streamlit-chat
 pypdf

@@ -1,13 +1,13 @@
 import uuid
 from typing import Union
 from sqlalchemy import text
-from grongier.pex import BusinessOperation
-from langchain.vectorstores import Chroma
-from langchain.llms import Ollama
-from langchain.embeddings import FastEmbedEmbeddings
-from langchain.document_loaders import PyPDFLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
-from langchain.vectorstores.utils import filter_complex_metadata
+from iop import BusinessOperation
+from langchain_community.vectorstores import Chroma
+from langchain_ollama import OllamaLLM
+from langchain_community.embeddings import FastEmbedEmbeddings
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
+from langchain_community.vectorstores.utils import filter_complex_metadata
 from langchain_iris import IRISVector
 
 from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatResponse, VectorSearchRequest, VectorSearchResponse
@@ -119,8 +119,8 @@ class ChatOperation(BusinessOperation):
         self.model = None
 
     def on_init(self):
-        self.model = Ollama(base_url="http://ollama:11434",model="orca-mini")
+        self.model = OllamaLLM(base_url="http://ollama:11434",model="orca-mini")
 
     def ask(self, request: ChatRequest):
-        return ChatResponse(response=self.model(request.query))
+        return ChatResponse(response=self.model.invoke(request.query))
 

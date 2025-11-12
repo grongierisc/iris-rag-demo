@@ -57,7 +57,7 @@ class TestChatOperation(unittest.TestCase):
         self.operation.on_tear_down()
 
     def test_ask_whithout_rag_no_mock(self):
-        request = ChatRequest(query="what is the grongier.pex module ?", rag=False)
+        request = ChatRequest(query="what is the iop module ?", rag=False)
         self.operation.on_init()
 
         response = self.operation.ask(request)
@@ -65,7 +65,7 @@ class TestChatOperation(unittest.TestCase):
         self.assertIsNotNone(response)
 
     def test_ask_with_rag_no_mock(self):
-        request = ChatRequest(query="what is the grongier.pex module ?", rag=True)
+        request = ChatRequest(query="what is the iop module ?", rag=True)
         self.operation.on_init()
 
         markdown_file = "misc/context.md"

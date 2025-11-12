@@ -4,7 +4,7 @@ import time
 import streamlit as st
 from streamlit_chat import message
 
-from grongier.pex import Director
+from iop import Director
 
 _service = Director.create_python_business_service("ChatService")
 

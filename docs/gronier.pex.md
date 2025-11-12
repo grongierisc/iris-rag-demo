@@ -3,7 +3,7 @@
 # Too long, didn't read
 
 Iop is a framework that allows you to use Python code in Interoperability productions of IRIS.
-It's main module is grongier.pex.
+It's main module is iop.
 
 You can use it in two ways :
 * Register your components in the management portal
@@ -13,7 +13,7 @@ You can use it in two ways :
 
 ## Example of a component :
 ```python
-from grongier.pex import BusinessOperation
+from iop import BusinessOperation
 
 class FileOperation(BusinessOperation):
     """
@@ -27,7 +27,7 @@ class FileOperation(BusinessOperation):
 
 ## How to register a component :
 ```python
-from grongier.pex import Utils
+from iop import Utils
 
 Utils.register_component("MyCombinedBusinessOperation","MyCombinedBusinessOperation","/irisdev/app/src/python/demo/",1,"PEX.MyCombinedBusinessOperation")
 ```

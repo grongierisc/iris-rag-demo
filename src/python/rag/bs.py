@@ -1,4 +1,4 @@
-from grongier.pex import BusinessService
+from iop import BusinessService
 
 from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest
 
