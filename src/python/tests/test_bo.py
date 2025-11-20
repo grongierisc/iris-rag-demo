@@ -1,87 +1,133 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
-from rag.bo import ChatOperation
-from rag.msg import FileIngestionRequest, ChatRequest, ChatClearRequest
+from rag.bo import ChatOperation, ChromaVectorOperation, IrisVectorOperation
+from rag.msg import FileIngestionRequest, ChatRequest, ChatClearRequest, VectorSearchRequest
 
 class TestChatOperation(unittest.TestCase):
     def setUp(self):
         self.operation = ChatOperation()
 
     def test_on_init(self):
-        self.operation.on_init()
-        self.assertIsNotNone(self.operation.model)
-        self.assertIsNotNone(self.operation.text_splitter)
+        with patch('rag.bo.OllamaLLM') as mock_llm:
+            self.operation.on_init()
+            self.assertIsNotNone(self.operation.model)
+            mock_llm.assert_called_once_with(base_url="http://ollama:11434", model="orca-mini")
 
-    def test_ask_without_rag(self):
+    def test_ask(self):
         request = ChatRequest(query="What is the answer?")
         self.operation.model = MagicMock()
-        self.operation.model.return_value = "response"
+        self.operation.model.invoke.return_value = "response"
 
         response = self.operation.ask(request)
 
-        self.operation.model.assert_called_once_with({"question": "What is the answer?"})
-        self.assertEqual(response, "response")
+        self.operation.model.invoke.assert_called_once_with("What is the answer?")
+        self.assertEqual(response.response, "response")
 
-    def test_ask_with_rag(self):
-        request = ChatRequest(query="What is the answer?", rag=True)
-        self.operation.chain = MagicMock()
-        self.operation.chain.invoke.return_value = "response"
 
-        response = self.operation.ask(request)
+class TestChromaVectorOperation(unittest.TestCase):
+    def setUp(self):
+        self.operation = ChromaVectorOperation()
 
-        self.operation.chain.invoke.assert_called_once_with("What is the answer?")
-        self.assertEqual(response, "response")
+    @patch('rag.bo.FastEmbedEmbeddings')
+    @patch('rag.bo.Chroma')
+    def test_on_init(self, mock_chroma, mock_embeddings):
+        self.operation.on_init()
+        self.assertIsNotNone(self.operation.text_splitter)
+        self.assertIsNotNone(self.operation.vector_store)
+        mock_chroma.assert_called_once()
 
     def test_clear(self):
+        self.operation.vector_store = MagicMock()
+        self.operation.vector_store.get.return_value = {'ids': ['id1', 'id2']}
+        
         request = ChatClearRequest()
-        self.operation.on_tear_down = MagicMock()
-
         self.operation.clear(request)
 
-        self.operation.on_tear_down.assert_called_once()
+        self.assertEqual(self.operation.vector_store.delete.call_count, 2)
 
-    def test_on_tear_down(self):
+    def test_similar(self):
+        request = VectorSearchRequest(query="test query")
         self.operation.vector_store = MagicMock()
-        self.operation.retriever = MagicMock()
-        self.operation.chain = MagicMock()
+        self.operation.vector_store.similarity_search.return_value = ["doc1", "doc2"]
 
-        self.operation.on_tear_down()
+        response = self.operation.similar(request)
 
-        self.assertIsNone(self.operation.vector_store)
-        self.assertIsNone(self.operation.retriever)
-        self.assertIsNone(self.operation.chain)
+        self.operation.vector_store.similarity_search.assert_called_once_with("test query")
+        self.assertEqual(response.docs, ["doc1", "doc2"])
 
-    def test_on_tear_down_no_mock(self):
-        self.operation.on_init()
-        self.operation.on_tear_down()
-
-    def test_ask_whithout_rag_no_mock(self):
-        request = ChatRequest(query="what is the iop module ?", rag=False)
-        self.operation.on_init()
-
-        response = self.operation.ask(request)
-
-        self.assertIsNotNone(response)
-
-    def test_ask_with_rag_no_mock(self):
-        request = ChatRequest(query="what is the iop module ?", rag=True)
-        self.operation.on_init()
-
-        markdown_file = "misc/context.md"
-        ingestion_request = FileIngestionRequest(file_path=markdown_file)
-        self.operation.ingest(ingestion_request)
-
-        response = self.operation.ask(request)
-
-        self.assertIsNotNone(response)
-
-    def test_ingest_text(self):
+    @patch('rag.bo.TextLoader')
+    def test_ingest_text(self, mock_loader):
         text_file = "requirements.txt"
         ingestion_request = FileIngestionRequest(file_path=text_file)
-        self.operation.on_init()
+        
+        mock_docs = [MagicMock(page_content="content")]
+        mock_loader.return_value.load.return_value = mock_docs
+        
+        self.operation.text_splitter = MagicMock()
+        self.operation.text_splitter.split_documents.return_value = mock_docs
+        self.operation.vector_store = MagicMock()
 
         self.operation.ingest(ingestion_request)
+
+        self.operation.vector_store.add_documents.assert_called_once()
+
+
+class TestIrisVectorOperation(unittest.TestCase):
+    def setUp(self):
+        self.operation = IrisVectorOperation()
+        self.operation.remote = False
+
+    @patch('rag.bo.FastEmbedEmbeddings')
+    @patch('rag.bo.IRISVector')
+    def test_on_init_local(self, mock_iris, mock_embeddings):
+        self.operation.on_init()
+        self.assertIsNotNone(self.operation.text_splitter)
+        self.assertIsNotNone(self.operation.vector_store)
+        mock_iris.assert_called_once()
+
+    @patch('rag.bo.FastEmbedEmbeddings')
+    @patch('rag.bo.IRISVector')
+    def test_on_init_remote(self, mock_iris, mock_embeddings):
+        self.operation.remote = True
+        self.operation.on_init()
+        self.assertIsNotNone(self.operation.text_splitter)
+        self.assertIsNotNone(self.operation.vector_store)
+        mock_iris.assert_called_once_with(
+            collection_name="vector",
+            embedding_function=mock_embeddings.return_value,
+            connection_string="iris://SuperUser:SYS@localhost:1972/IRISAPP"
+        )
+
+    def test_similarity_search_integration(self):
+        """Integration test for similarity search without mocks"""
+        # Initialize the operation
+        self.operation.remote = True
+        self.operation.on_init()
+        
+        # Clean up any existing data first
+        clear_request = ChatClearRequest()
+        try:
+            self.operation.clear(clear_request)
+        except Exception:
+            pass  # Ignore if no data exists
+        
+        # Ingest a text file
+        text_file = "requirements.txt"
+        ingestion_request = FileIngestionRequest(file_path=text_file)
+        self.operation.ingest(ingestion_request)
+        
+        # Perform similarity search
+        search_request = VectorSearchRequest(query="langchain")
+        response = self.operation.similar(search_request)
+        
+        # Verify results
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(response.docs)
+        self.assertGreater(len(response.docs), 0)
+        
+        # Clean up
+        self.operation.clear(clear_request)
 
 if __name__ == "__main__":
     unittest.main()

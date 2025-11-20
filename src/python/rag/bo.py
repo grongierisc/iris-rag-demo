@@ -1,4 +1,5 @@
 import uuid
+import logging
 from typing import Union
 from sqlalchemy import text
 from iop import BusinessOperation
@@ -15,8 +16,8 @@ from rag.msg import ChatRequest, ChatClearRequest, FileIngestionRequest, ChatRes
 class VectorBaseOperation(BusinessOperation):
 
     def __init__(self):
-        self.text_splitter = None
-        self.vector_store = Union[IRISVector, Chroma]
+        self.text_splitter : RecursiveCharacterTextSplitter
+        self.vector_store : Union[IRISVector, Chroma]
 
     def ingest(self, request: FileIngestionRequest):
         file_path = request.file_path
@@ -95,17 +96,16 @@ class VectorBaseOperation(BusinessOperation):
 
 class IrisVectorOperation(VectorBaseOperation):
 
+    remote : bool = True
+
     def on_init(self):
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=100)
-        self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
+        if not self.remote:
+            self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings())
+        else:
+            self.vector_store = IRISVector(collection_name="vector",embedding_function=FastEmbedEmbeddings(),
+                                        connection_string="iris://SuperUser:SYS@localhost:1972/IRISAPP")
 
-    def on_tear_down(self):
-        docs = self.vector_store.get()
-        self.log_info(f"Deleting {len(docs['ids'])} documents")
-        with self.vector_store._conn.begin():
-            for id in docs['ids']:
-                self.vector_store._conn.execute(text("delete from vector where id = :id"), {"id": id})
-                                     
 class ChromaVectorOperation(VectorBaseOperation):
 
     def on_init(self):
@@ -116,7 +116,7 @@ class ChromaVectorOperation(VectorBaseOperation):
 class ChatOperation(BusinessOperation):
 
     def __init__(self):
-        self.model = None
+        self.model : OllamaLLM
 
     def on_init(self):
         self.model = OllamaLLM(base_url="http://ollama:11434",model="orca-mini")
